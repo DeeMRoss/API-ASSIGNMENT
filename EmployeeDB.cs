@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-
-class EmployeeDb : DbContext
+public class AppDbContext : DbContext
 {
-    public EmployeeDb(DbContextOptions<EmployeeDb> options)
-        : base(options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<Employee> Employees { get; set; }
+    public DbSet<Evaluation> Evaluations { get; set; }
+    public DbSet<Department> Departments { get; set; }
 }

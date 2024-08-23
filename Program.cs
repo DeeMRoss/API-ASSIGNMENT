@@ -5,50 +5,125 @@ builder.Services.AddDbContext<EmployeeDb>(opt => opt.UseInMemoryDatabase("TodoLi
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 var app = builder.Build();
 
-app.MapGet("/todoitems", async (EmployeeDb db) =>
+app.MapGet("/employees", async (AppDbContext db) =>
     await db.Employees.ToListAsync());
 
-app.MapGet("/todoitems/complete", async (EmployeeDb db) =>
-    await db.Employees.Where(t => t.IsComplete).ToListAsync());
-
-app.MapGet("/todoitems/{id}", async (int id, EmployeeDb db) =>
+app.MapGet("/employees/{id}", async (int id, AppDbContext db) =>
     await db.Employees.FindAsync(id)
-        is Employee todo
-            ? Results.Ok(todo)
+        is Employee employee
+            ? Results.Ok(employee)
             : Results.NotFound());
 
-app.MapPost("/todoitems", async (Todo todo, TodoDb db) =>
+app.MapPost("/employees", async (Employee employee, AppDbContext db) =>
 {
-    db.Todos.Add(todo);
+    db.Employees.Add(employee);
     await db.SaveChangesAsync();
-
-    return Results.Created($"/todoitems/{todo.Id}", todo);
+    return Results.Created($"/employees/{employee.Id}", employee);
 });
 
-app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
+app.MapPut("/employees/{id}", async (int id, Employee inputEmployee, AppDbContext db) =>
 {
-    var todo = await db.Todos.FindAsync(id);
+    var employee = await db.Employees.FindAsync(id);
+    if (employee is null) return Results.NotFound();
 
-    if (todo is null) return Results.NotFound();
-
-    todo.Name = inputTodo.Name;
-    todo.IsComplete = inputTodo.IsComplete;
+    employee.FirstName = inputEmployee.FirstName;
+    employee.MiddleName = inputEmployee.MiddleName;
+    employee.LastName = inputEmployee.LastName;
+    employee.DepartmentId = inputEmployee.DepartmentId;
 
     await db.SaveChangesAsync();
-
     return Results.NoContent();
 });
 
-app.MapDelete("/todoitems/{id}", async (int id, TodoDb db) =>
+app.MapDelete("/employees/{id}", async (int id, AppDbContext db) =>
 {
-    if (await db.Todos.FindAsync(id) is Todo todo)
+    if (await db.Employees.FindAsync(id) is Employee employee)
     {
-        db.Todos.Remove(todo);
+        db.Employees.Remove(employee);
         await db.SaveChangesAsync();
         return Results.NoContent();
     }
+    return Results.NotFound();
+});
 
+// Evaluation Endpoints
+app.MapGet("/evaluations", async (AppDbContext db) =>
+    await db.Evaluations.ToListAsync());
+
+app.MapGet("/evaluations/{id}", async (int id, AppDbContext db) =>
+    await db.Evaluations.FindAsync(id)
+        is Evaluation evaluation
+            ? Results.Ok(evaluation)
+            : Results.NotFound());
+
+app.MapPost("/evaluations", async (Evaluation evaluation, AppDbContext db) =>
+{
+    db.Evaluations.Add(evaluation);
+    await db.SaveChangesAsync();
+    return Results.Created($"/evaluations/{evaluation.Id}", evaluation);
+});
+
+app.MapPut("/evaluations/{id}", async (int id, Evaluation inputEvaluation, AppDbContext db) =>
+{
+    var evaluation = await db.Evaluations.FindAsync(id);
+    if (evaluation is null) return Results.NotFound();
+
+    evaluation.ManagerId = inputEvaluation.ManagerId;
+    evaluation.EmployeeId = inputEvaluation.EmployeeId;
+
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+app.MapDelete("/evaluations/{id}", async (int id, AppDbContext db) =>
+{
+    if (await db.Evaluations.FindAsync(id) is Evaluation evaluation)
+    {
+        db.Evaluations.Remove(evaluation);
+        await db.SaveChangesAsync();
+        return Results.NoContent();
+    }
+    return Results.NotFound();
+});
+
+// Department Endpoints
+app.MapGet("/departments", async (AppDbContext db) =>
+    await db.Departments.ToListAsync());
+
+app.MapGet("/departments/{id}", async (int id, AppDbContext db) =>
+    await db.Departments.FindAsync(id)
+        is Department department
+            ? Results.Ok(department)
+            : Results.NotFound());
+
+app.MapPost("/departments", async (Department department, AppDbContext db) =>
+{
+    db.Departments.Add(department);
+    await db.SaveChangesAsync();
+    return Results.Created($"/departments/{department.Id}", department);
+});
+
+app.MapPut("/departments/{id}", async (int id, Department inputDepartment, AppDbContext db) =>
+{
+    var department = await db.Departments.FindAsync(id);
+    if (department is null) return Results.NotFound();
+
+    department.Name = inputDepartment.Name;
+
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+app.MapDelete("/departments/{id}", async (int id, AppDbContext db) =>
+{
+    if (await db.Departments.FindAsync(id) is Department department)
+    {
+        db.Departments.Remove(department);
+        await db.SaveChangesAsync();
+        return Results.NoContent();
+    }
     return Results.NotFound();
 });
 
 app.Run();
+
